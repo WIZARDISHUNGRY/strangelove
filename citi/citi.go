@@ -19,6 +19,7 @@ import (
 const sparklineLen = 10
 
 func Citi(lat, lon float64) <-chan []string {
+
 	c, err := gbfs.NewHTTPClient(
 		gbfs.HTTPOptionClient(http.Client{Timeout: 10 * time.Second}),
 		gbfs.HTTPOptionBaseURL("http://gbfs.citibikenyc.com/gbfs"),

@@ -66,19 +66,20 @@ func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
 		m.bikeShare,
-		func() tea.Msg { return m.clock(time.Now()) },
-		tea.Every(time.Minute, m.clock),
+		m.doTick(),
 	)
+}
+
+func (m *Model) doTick() tea.Cmd {
+	return tea.Every(time.Second, func(t time.Time) tea.Msg {
+		return clock.Coords{Lat: lat, Lon: lon}.Time(t)
+	})
 }
 
 type bikeMessage []string
 
 func (m *Model) bikeShare() tea.Msg {
 	return (bikeMessage)(<-m.citi)
-}
-
-func (m *Model) clock(t time.Time) tea.Msg {
-	return clock.Coords{Lat: lat, Lon: lon}.Time(t)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -105,6 +106,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case clock.Reading:
 		m.Reading = msg
+		return m, m.doTick()
 	}
 
 	return m, nil

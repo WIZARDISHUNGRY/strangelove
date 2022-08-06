@@ -1,11 +1,5 @@
 bitbucket.org/dtolpin/gosparkline v0.1.0 h1:OQf9+xcTSyTfzYSZj0W50ho3UVbf+eRqb9bmPv1DfiY=
 bitbucket.org/dtolpin/gosparkline v0.1.0/go.mod h1:9KQkASuMM5KNwio5iCS0H4vp3ggLuUXZTb7gUBdTU18=
-github.com/Eraac/gbfs v0.0.0-20200511215218-d8abacc250f7 h1:fHf08m3wfVWsAY1o3RxwBbSXgUSNBtJ28fA5pW8d2t8=
-github.com/Eraac/gbfs v0.0.0-20200511215218-d8abacc250f7/go.mod h1:FutafKHYX9afpTQf6NGXzkB96j+7anKrM3foPzD3nVs=
-github.com/Eraac/gbfs v0.0.0-20200518174807-3e6c5b1c3d08 h1:6+Yyv55BOfuEzfT+L/fSsg1VQj+FwGdSDeqhzZKpyxo=
-github.com/Eraac/gbfs v0.0.0-20200518174807-3e6c5b1c3d08/go.mod h1:FutafKHYX9afpTQf6NGXzkB96j+7anKrM3foPzD3nVs=
-github.com/Eraac/gbfs v1.1.3 h1:iX6PQabUl/4/3tvJ0z0vwNAHYhIahi0O4faVTJmTQEU=
-github.com/Eraac/gbfs v1.1.3/go.mod h1:XmuNUKbgMKudIiPgaWq6oGfwBoqqkZ5HcN1ysd1+AS8=
 github.com/StefanSchroeder/Golang-Ellipsoid v0.0.0-20200928074047-3758eb9e9574 h1:l/LWu3593Pp/tlhQ47jWuRaFkukQBd+b21XNkE401Yw=
 github.com/StefanSchroeder/Golang-Ellipsoid v0.0.0-20200928074047-3758eb9e9574/go.mod h1:6/CMhlAhQVieQT0vgVvr6VfWJj21dQV7Ns6yOLuLnF8=
 github.com/charmbracelet/bubbletea v0.22.0 h1:E1BTNSE3iIrq0G0X6TjGAmrQ32cGCbFDPcIuImikrUc=

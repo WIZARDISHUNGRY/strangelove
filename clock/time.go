@@ -18,6 +18,9 @@ type event struct {
 	time time.Time
 }
 
+const timeFmt = "Mon Jan _2 15:04 MST 2006"
+const timeFmtShort = "15:04"
+
 func (e event) String(now time.Time) string {
 
 	var naturalDur float64
@@ -30,14 +33,13 @@ func (e event) String(now time.Time) string {
 		unit = "m"
 	}
 
-	return fmt.Sprintf("%7s in %4.1f%s (%6s)", e.desc, naturalDur, unit, e.time.Format(time.Kitchen))
+	return fmt.Sprintf("%7s at %6s (%4.1f%s)", e.desc, e.time.Format(timeFmtShort), naturalDur, unit)
 }
 
 func (r Reading) Render() string {
 	eventRise := event{desc: "Sunrise", time: r.Sunrise}
 	eventSet := event{desc: "Sunset", time: r.Sunset}
 	night := r.BeforeSunrise
-	desc := "🌞"
 	events := []event{
 		eventSet,
 		eventRise,
@@ -47,9 +49,8 @@ func (r Reading) Render() string {
 			eventRise,
 			eventSet,
 		}
-		desc = "🌚"
 	}
-	return fmt.Sprintf("%s %s\n%s\n%s ", r.Time.Format(time.UnixDate), desc, events[0].String(r.Time), events[1].String(r.Time))
+	return fmt.Sprintf("%s\n%s\n%s ", r.Time.Format(timeFmt), events[0].String(r.Time), events[1].String(r.Time))
 }
 
 type Coords struct {
