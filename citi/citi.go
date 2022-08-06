@@ -16,6 +16,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const sparklineLen = 10
+
 func Citi() <-chan []string {
 	c, err := gbfs.NewHTTPClient(
 		gbfs.HTTPOptionClient(http.Client{Timeout: 10 * time.Second}),
@@ -72,14 +74,14 @@ func Citi() <-chan []string {
 				if ok {
 					statusStr = fmt.Sprintf("%d/%d", st.NumBikesAvailable, s.Capacity)
 					frac := float64(st.NumBikesAvailable)
-					if len(sparklines[s.StationID]) > 5 {
-						sparklines[s.StationID] = sparklines[s.StationID][:5]
+					if len(sparklines[s.StationID]) > sparklineLen {
+						sparklines[s.StationID] = sparklines[s.StationID][:sparklineLen]
 					}
 					sparklines[s.StationID] = append([]float64{frac}, sparklines[s.StationID]...)
 					statusStr += " " + spark.Line(sparklines[s.StationID])
 				}
 
-				str := fmt.Sprintf("%s\n(%.0fm %s) %s %d", s.Name, distance, direction(bearing), statusStr, time.Now().Second())
+				str := fmt.Sprintf("%s\n(%12.0fm %s) %s %d", s.Name, distance, direction(bearing), statusStr, time.Now().Second())
 				output = append(output, str)
 			}
 			out <- output

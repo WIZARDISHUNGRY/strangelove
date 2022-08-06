@@ -15,13 +15,13 @@ var (
 
 	activeTabBorder = lipgloss.Border{
 		Top:         "─",
-		Bottom:      " ",
+		Bottom:      "─",
 		Left:        "│",
 		Right:       "│",
 		TopLeft:     "╭",
 		TopRight:    "╮",
-		BottomLeft:  "┘",
-		BottomRight: "└",
+		BottomLeft:  "└",
+		BottomRight: "┘",
 	}
 	highlight       = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
 	highlightActive = lipgloss.AdaptiveColor{Light: "#A76BFD", Dark: "#9D76F4"}
@@ -32,8 +32,8 @@ var (
 		Right:       "│",
 		TopLeft:     "╭",
 		TopRight:    "╮",
-		BottomLeft:  "┴",
-		BottomRight: "┴",
+		BottomLeft:  "└",
+		BottomRight: "┘",
 	}
 	tab = lipgloss.NewStyle().
 		Border(tabBorder, true).
@@ -101,6 +101,14 @@ func (m *Model) View() string {
 	{
 		var renderedTabs []string
 
+		var maxWidth int
+		for _, t := range m.Tabs {
+			maxWidth = max(maxWidth, lipgloss.Width(t))
+		}
+		maxWidth += tab.GetHorizontalPadding()
+		activeTab := activeTab.Width(maxWidth)
+		tab := tab.Width(maxWidth)
+
 		// Activate the correct tab
 		for i, t := range m.Tabs {
 			if i == m.activatedTab {
@@ -111,11 +119,11 @@ func (m *Model) View() string {
 		}
 
 		row := lipgloss.JoinVertical(
-			lipgloss.Top,
+			lipgloss.Bottom,
 			renderedTabs...,
 		)
-		gap := tabGap.Render(strings.Repeat(" ", max(0, defaultWidth-lipgloss.Width(row)-2)))
-		row = lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
+		// gap := tabGap.Render(strings.Repeat(" ", max(0, defaultWidth-lipgloss.Width(row)-2)))
+		// row = lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 		doc.WriteString(row + "\n\n")
 	}
 
