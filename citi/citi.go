@@ -18,7 +18,7 @@ import (
 
 const sparklineLen = 10
 
-func Citi() <-chan []string {
+func Citi(lat, lon float64) <-chan []string {
 	c, err := gbfs.NewHTTPClient(
 		gbfs.HTTPOptionClient(http.Client{Timeout: 10 * time.Second}),
 		gbfs.HTTPOptionBaseURL("http://gbfs.citibikenyc.com/gbfs"),
@@ -37,7 +37,6 @@ func Citi() <-chan []string {
 	}
 
 	geo1 := ellipsoid.Init("WGS84", ellipsoid.Degrees, ellipsoid.Meter, ellipsoid.LongitudeIsSymmetric, ellipsoid.BearingIsSymmetric)
-	lat, lon := 40.688265, -73.9184594
 
 	dist := func(s gbfsspec.StationInformation) float64 {
 		distance, _ := geo1.To(lat, lon, s.Latitude, s.Longitude)
@@ -52,40 +51,61 @@ func Citi() <-chan []string {
 
 	sparklines := make(map[string][]float64)
 
+	const pollInterval = 60 * time.Second
+
 	go func() {
-		for {
+		for i := 0; true; i++ {
 			var ss gbfsspec.FeedStationStatus
 			if err := c.Get(gbfsspec.FeedKeyStationStatus, &ss); err != nil {
 				panic(err)
 			}
+			nextUpdate := time.Now().Add(pollInterval)
+			throbber := []float64{0}
 
 			stationMap := make(map[string]gbfsspec.StationStatus)
 			for _, s := range ss.Data.Stations {
 				stationMap[s.StationID] = s
 			}
 
-			output := make([]string, 0, len(myStations))
+			first := true
+			for time.Now().Before(nextUpdate) {
 
-			for _, s := range myStations {
-				distance, bearing := geo1.To(lat, lon, s.Latitude, s.Longitude)
+				output := make([]string, 0, len(myStations))
 
-				statusStr := "?????"
-				st, ok := stationMap[s.StationID]
-				if ok {
-					statusStr = fmt.Sprintf("%d/%d", st.NumBikesAvailable, s.Capacity)
-					frac := float64(st.NumBikesAvailable)
-					if len(sparklines[s.StationID]) > sparklineLen {
-						sparklines[s.StationID] = sparklines[s.StationID][:sparklineLen]
+				for i, s := range myStations {
+					distance, bearing := geo1.To(lat, lon, s.Latitude, s.Longitude)
+
+					statusStr := "?????"
+					st, ok := stationMap[s.StationID]
+					if ok {
+						frac := float64(st.NumBikesAvailable)
+						if first {
+							sparklines[s.StationID] = append([]float64{frac}, sparklines[s.StationID]...)
+						}
+						if len(sparklines[s.StationID]) > sparklineLen {
+							sparklines[s.StationID] = sparklines[s.StationID][:sparklineLen]
+						}
+						statusStr = fmt.Sprintf("%2.0d/%2.0d %-10s", st.NumBikesAvailable, s.Capacity, spark.Line(sparklines[s.StationID]))
 					}
-					sparklines[s.StationID] = append([]float64{frac}, sparklines[s.StationID]...)
-					statusStr += " " + spark.Line(sparklines[s.StationID])
+
+					throb := " "
+
+					if i == len(myStations)-1 && len(throbber) > 0 {
+						runes := ([]rune)(spark.Line(throbber))
+						throb = string(runes[len(runes)-1:])
+					}
+
+					str := fmt.Sprintf("%s\n%4.0fm %2s %s %s", s.Name, distance, direction(bearing), statusStr, throb)
+					output = append(output, str)
 				}
 
-				str := fmt.Sprintf("%s\n(%12.0fm %s) %s %d", s.Name, distance, direction(bearing), statusStr, time.Now().Second())
-				output = append(output, str)
+				dur := time.Until(nextUpdate).Seconds()
+				throbber = append(throbber, float64(dur))
+				out <- output
+				time.Sleep(time.Second)
+				first = false
 			}
-			out <- output
-			time.Sleep(time.Second)
+
 			// fmt.Printf("Last updated: %s\n", si.LastUpdated.ToTime().String())
 		}
 	}()

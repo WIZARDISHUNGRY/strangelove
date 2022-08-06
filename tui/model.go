@@ -3,11 +3,15 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"jonwillia.ms/strangelove/citi"
+	"jonwillia.ms/strangelove/clock"
 )
+
+const lat, lon = 40.688265, -73.9184594
 
 // https://github.com/charmbracelet/bubbletea/pull/181/files
 var (
@@ -52,19 +56,29 @@ var (
 type Model struct {
 	Tabs       []string
 	TabContent []string
+	Reading    clock.Reading
 
 	activatedTab int
 	citi         <-chan []string
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(tea.EnterAltScreen, m.bikeShare)
+	return tea.Batch(
+		tea.EnterAltScreen,
+		m.bikeShare,
+		func() tea.Msg { return m.clock(time.Now()) },
+		tea.Every(time.Minute, m.clock),
+	)
 }
 
 type bikeMessage []string
 
 func (m *Model) bikeShare() tea.Msg {
 	return (bikeMessage)(<-m.citi)
+}
+
+func (m *Model) clock(t time.Time) tea.Msg {
+	return clock.Coords{Lat: lat, Lon: lon}.Time(t)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -89,6 +103,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.activatedTab--
 			}
 		}
+	case clock.Reading:
+		m.Reading = msg
 	}
 
 	return m, nil
@@ -97,7 +113,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *Model) View() string {
 	doc := strings.Builder{}
 
-	// Tabs
+	// Clock
+	var cellClock string
+	{
+		cellClock = activeTab.Render(m.Reading.Render())
+	}
+
+	// Bikes
+	var cellBike string
 	{
 		var renderedTabs []string
 
@@ -118,14 +141,15 @@ func (m *Model) View() string {
 			}
 		}
 
-		row := lipgloss.JoinVertical(
-			lipgloss.Bottom,
+		cellBike = lipgloss.JoinVertical(
+			lipgloss.Top,
 			renderedTabs...,
 		)
 		// gap := tabGap.Render(strings.Repeat(" ", max(0, defaultWidth-lipgloss.Width(row)-2)))
 		// row = lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
-		doc.WriteString(row + "\n\n")
 	}
+	d := lipgloss.JoinHorizontal(lipgloss.Left, cellClock, cellBike)
+	doc.WriteString(d + "\n\n")
 
 	doc.WriteString("whatever!!!" + fmt.Sprintf("%d", len(m.Tabs)))
 
@@ -157,7 +181,7 @@ func NewModel() *Model {
 	}
 
 	return &Model{
-		citi:       citi.Citi(),
+		citi:       citi.Citi(lat, lon),
 		Tabs:       tabs,
 		TabContent: tabContent,
 	}
