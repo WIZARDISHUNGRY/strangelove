@@ -110,7 +110,7 @@ func (m *Model) View() string {
 			}
 		}
 
-		row := lipgloss.JoinHorizontal(
+		row := lipgloss.JoinVertical(
 			lipgloss.Top,
 			renderedTabs...,
 		)
